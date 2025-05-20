@@ -6,10 +6,12 @@
   <style>
     body          { font-family: system-ui, sans-serif; background:#f5f7fa; }
     #contactForm  { max-width:480px; margin:60px auto; padding:24px;
-                    background:#fff; border-radius:8px; box-shadow:0 2px 12px rgba(0,0,0,.08);}
+                    background:#fff; border-radius:8px;
+                    box-shadow:0 2px 12px rgba(0,0,0,.08);}
     .form-group   { margin-bottom:16px; }
     label         { display:block; font-weight:600; margin-bottom:6px; }
-    input,textarea{ width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; }
+    input,textarea{ width:100%; padding:10px; border:1px solid #ddd;
+                    border-radius:4px; box-sizing:border-box; }
     textarea      { height:96px; resize:vertical; }
     button        { background:#1175f8; color:#fff; border:0; padding:10px 18px;
                     border-radius:4px; cursor:pointer; font-size:15px; }
@@ -42,29 +44,32 @@
 </form>
 
 <script>
-const form       = document.getElementById("contactForm");
-const submitBtn  = document.getElementById("submitBtn");
-const resultBox  = document.getElementById("result");
+const form      = document.getElementById("contactForm");
+const submitBtn = document.getElementById("submitBtn");
+const resultBox = document.getElementById("result");
 
-//  ✉️  POST → /send-whatsapp  (relative in dev; swap absolute URL when deployed)
+// Dev: relative URL → http://localhost:5000/send-whatsapp
+// Prod: change this to your Render/Fly endpoint
+const ENDPOINT = "/send-whatsapp";
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const data   = Object.fromEntries(new FormData(form).entries());
-  const body   = { ...data, message: data.message.trim() };
+  const data = Object.fromEntries(new FormData(form).entries());
+  data.message = (data.message || "").trim();
 
-  submitBtn.disabled = true;
+  submitBtn.disabled   = true;
   submitBtn.textContent = "Sending…";
   resultBox.textContent = "";
 
   try {
-    const res   = await fetch("/send-whatsapp", {
+    const res  = await fetch(ENDPOINT, {
       method : "POST",
       headers: { "Content-Type": "application/json" },
-      body   : JSON.stringify(body)
+      body   : JSON.stringify(data)
     });
-    const json  = await res.json();
-    if (!res.ok) throw new Error(json.message || "Server error");
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message ?? "Server error");
 
     resultBox.textContent = "✅ Message delivered to WhatsApp!";
     resultBox.className   = "success";
@@ -73,7 +78,7 @@ form.addEventListener("submit", async (e) => {
     resultBox.textContent = "❌ " + err.message;
     resultBox.className   = "error";
   } finally {
-    submitBtn.disabled  = false;
+    submitBtn.disabled   = false;
     submitBtn.textContent = "Send";
   }
 });
