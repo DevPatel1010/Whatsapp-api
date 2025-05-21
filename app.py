@@ -10,6 +10,7 @@ from flask_cors import CORS
 from twilio.rest import Client
 from dotenv import load_dotenv
 
+
 # ── Load .env automatically in local development ─────────────────────
 if os.getenv("FLASK_ENV") != "production":
     load_dotenv()              # pulls variables from .env when FLASK_ENV≠production
@@ -32,11 +33,14 @@ def index():
 
 @app.route("/send-whatsapp", methods=["GET", "POST"])
 def send_whatsapp():
+    """GET → simple status, POST → forward message to WhatsApp"""
     if request.method == "GET":
         return jsonify(status="WhatsApp endpoint is active",
-                       message="POST here to send messages")
-
+                       message="Use POST to send messages")
+    
     data = request.json or {}
+    print("Incoming payload →", data)      # console debug
+
     name    = data.get("name", "").strip()
     email   = data.get("email", "").strip()
     message = data.get("message", "").strip()
@@ -44,21 +48,24 @@ def send_whatsapp():
     if not message:
         return jsonify(success=False, message="Message is required"), 400
 
-    body_parts = []
-    if name:
-        body_parts.append(f"From: {name}")
-    body_parts.append(message)
-    if email:
-        body_parts.append(f"Contact: {email}")
-    body = "\n".join(body_parts)
+    # Use the better formatted template
+    body = f"""
+📬 New Contact Form Submission
+
+👤 Name: {name or 'Not provided'}
+📧 Email: {email or 'Not provided'}
+💬 Message: {message}
+
+
+"""
 
     try:
-        twilio_msg = client.messages.create(
+        msg = client.messages.create(
             from_=twilio_from,
             to=whatsapp_to,
             body=body
         )
-        return jsonify(success=True, sid=twilio_msg.sid)
+        return jsonify(success=True, sid=msg.sid)
     except Exception as exc:
         print("Twilio error →", exc)
         return jsonify(success=False, message=str(exc)), 500
@@ -72,3 +79,21 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
     print(f"🚀  Running on http://localhost:{port}")
     app.run(host="0.0.0.0", port=port, debug=True)
+
+def send_notification(form_data):
+    name = form_data.get('name', 'Not provided')
+    email = form_data.get('email', 'Not provided')
+    message = form_data.get('message', 'Not provided')
+    
+    # Create a better formatted message template
+    notification_template = f"""
+📬 New Contact Form Submission
+
+👤 Name: {name}
+📧 Email: {email}
+💬 Message: {message}
+
+"""
+    
+    # Send the notification (using your existing method)
+    # ...
