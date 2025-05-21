@@ -48,14 +48,13 @@ def send_whatsapp():
     if not message:
         return jsonify(success=False, message="Message is required"), 400
 
-    # Use the better formatted template
+    # Format exactly like the image example
     body = f"""
 📬 New Contact Form Submission
 
 👤 Name: {name or 'Not provided'}
 📧 Email: {email or 'Not provided'}
-💬 Message: {message}
-
+💬 Message: {message} 
 
 """
 
