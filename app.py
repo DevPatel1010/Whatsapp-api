@@ -17,7 +17,7 @@ if os.getenv("FLASK_ENV") != "production":
 
 # ── Flask app & CORS (open now, restrict later) ──────────────────────
 app = Flask(__name__)
-CORS(app, origins="*")         # after you deploy: origins=["https://your-site.com"]
+CORS(app, origins=["https://kwezy.framer.website"], supports_credentials=True)         # after you deploy: origins=["https://your-site.com"]
 
 # ── Twilio client setup ───────────────────────────────────────────────
 account_sid = os.environ["TWILIO_ACCOUNT_SID"]
